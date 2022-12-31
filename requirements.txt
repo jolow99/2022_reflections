@@ -1,0 +1,6 @@
+gsheetsdb
+pandas
+numpy
+streamlit
+matplotlib
+wordcloud
