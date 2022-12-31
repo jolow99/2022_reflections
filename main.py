@@ -17,7 +17,7 @@ credentials = service_account.Credentials.from_service_account_info(
 )
 conn = connect(credentials=credentials)
 
-@st.cache(persist=True)
+@st.cache(ttl=600)
 def load_data():
     sheet_url = st.secrets["private_gsheets_url"]
     query = f'SELECT * FROM "{sheet_url}"'
