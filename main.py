@@ -4,9 +4,26 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 
-@st.cache(persist=True)
+import streamlit as st
+from google.oauth2 import service_account
+from gsheetsdb import connect
+
+# Create a connection object.
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=[
+        "https://www.googleapis.com/auth/spreadsheets",
+    ],
+)
+conn = connect(credentials=credentials)
+
+# @st.cache(persist=True)
 def load_data():
-    df = pd.read_csv("data.csv")
+    sheet_url = st.secrets["private_gsheets_url"]
+    query = f'SELECT * FROM " {sheet_url} "'
+    rows = conn.execute(query, headers=1)
+    rows = rows.fetchall()
+    df = pd.DataFrame(rows)
     return df
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
