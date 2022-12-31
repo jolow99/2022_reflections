@@ -17,13 +17,12 @@ credentials = service_account.Credentials.from_service_account_info(
 )
 conn = connect(credentials=credentials)
 
-# @st.cache(persist=True)
+@st.cache(persist=True)
 def load_data():
     sheet_url = st.secrets["private_gsheets_url"]
-    query = f'SELECT * FROM " {sheet_url} "'
+    query = f'SELECT * FROM "{sheet_url}"'
     rows = conn.execute(query, headers=1)
-    rows = rows.fetchall()
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows.fetchall()[1:], columns=["Date", "Storyworthy", "Grateful", "Others", "Overall"])
     return df
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
