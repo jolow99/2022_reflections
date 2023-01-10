@@ -7,21 +7,37 @@ from wordcloud import WordCloud, STOPWORDS
 import streamlit as st
 from google.oauth2 import service_account
 from gsheetsdb import connect
+import gspread
 
 # Create a connection object.
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
-    scopes=[
-        "https://www.googleapis.com/auth/spreadsheets",
-    ],
+    scopes = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
 )
 conn = connect(credentials=credentials)
+file = gspread.authorize(credentials)
+
+# Write to 2023 database
+storyworthy = st.text_input("Storyworthy moment of the day")
+grateful = st.text_input("What I'm grateful for")
+others = st.text_input("what I did today")
+rating = st.slider("Rate my day from 1 to 10", 1, 10)
+if st.button("Submit"):
+    sheet = file.open("Homework For Life")
+    sheet = sheet.worksheet("2023")
+    # Find next available row where the 2nd, 3rd, 4th and 5th column is empty
+    next_row = len(sheet.col_values(2)) + 1
+    # Insert the data
+    sheet.update(f"B{next_row}", storyworthy)
+    sheet.update(f"C{next_row}", grateful)
+    sheet.update(f"D{next_row}", others)
+    sheet.update(f"E{next_row}", rating)
+    st.success("Your reflection has been added to the database!")
 
 # @st.cache(ttl=600)
-
-
 def load_data():
-    sheet_url = st.secrets["private_gsheets_url"]
+    sheet_url = st.secrets["2022"]
     query = f'SELECT * FROM "{sheet_url}"'
     rows = conn.execute(query, headers=1)
     df = pd.DataFrame(rows.fetchall()[1:], columns=["Date", "Storyworthy", "Grateful", "Others", "Overall"])
@@ -106,3 +122,7 @@ col2.metric(label="Median", value=score_col.median())
 col3.metric(label="Mode", value=score_col.mode()[0])
 col4.metric(label="Standard Deviation", value=round(score_col.std(),1))
 st.line_chart(score_col)
+st.markdown("---")
+
+
+
